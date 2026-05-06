@@ -1243,6 +1243,12 @@ proceed:
 				hdr->msg_type != DHCPV6_MSG_REBIND) {
 
 				size_t handshake_len = 4;
+				if (hdr->msg_type == DHCPV6_MSG_REQUEST)
+					handshake_len += sizeof(struct dhcpv6_auth_reconfigure);
+
+				if (buflen < handshake_len)
+					return response_len;
+
 				buf[0] = 0;
 				buf[1] = DHCPV6_OPT_RECONF_ACCEPT;
 				buf[2] = 0;
@@ -1259,8 +1265,7 @@ proceed:
 					};
 
 					memcpy(auth.key, a->key, sizeof(a->key));
-					memcpy(buf + handshake_len, &auth, sizeof(auth));
-					handshake_len += sizeof(auth);
+					memcpy(buf + 4, &auth, sizeof(auth));
 				}
 
 				buf += handshake_len;
